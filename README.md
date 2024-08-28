@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # flutter_mcq
 
 A new Flutter project.
@@ -14,3 +15,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# mcq_application
+flutter and firebase mcq
+>>>>>>> 7f71ecd5145b2429b6a758da682416dec66e6d38
