@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1054890031709",
+    "project_id": "mcq-application-14a70",
+    "storage_bucket": "mcq-application-14a70.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1054890031709:android:7a3e6a259a0fd11d36ebb4",
+        "android_client_info": {
+          "package_name": "com.example.flutter_mcq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtolAV1rKPMEkHyhsEF8nUqLWucNPL4EI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
