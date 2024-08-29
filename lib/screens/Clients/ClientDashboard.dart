@@ -2,24 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class ClientDashboard extends StatefulWidget {
-  @override
-  _ClientDashboardState createState() => _ClientDashboardState();
-}
-
-class _ClientDashboardState extends State<ClientDashboard> {
+class ClientDashboard extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Fetch total number of courses and users
   Future<int> _getTotalUsers() async {
     final snapshot = await _firestore.collection('users').get();
-    return snapshot.docs.length;
+    return snapshot.size;
   }
 
   Future<int> _getTotalCourses() async {
-    final snapshot = await _firestore.collection('courses').get(); // Assuming 'courses' is the collection name
-    return snapshot.docs.length;
+    final snapshot = await _firestore.collection('courses').get();
+    return snapshot.size;
   }
 
   @override
@@ -27,10 +21,14 @@ class _ClientDashboardState extends State<ClientDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Client Dashboard'),
-        leading: IconButton(
-          icon: const Icon(Icons.person),
-          onPressed: () {
-            // Handle profile icon press
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
           },
         ),
         actions: [
@@ -60,13 +58,13 @@ class _ClientDashboardState extends State<ClientDashboard> {
               ),
             ),
             ListTile(
-              title: const Text('Courses'),
+              title: const Text('My Course'),
               onTap: () {
                 Navigator.pushNamed(context, '/courses'); // Adjust route as needed
               },
             ),
             ListTile(
-              title: const Text('Users'),
+              title: const Text('Settings'),
               onTap: () {
                 Navigator.pushNamed(context, '/users'); // Adjust route as needed
               },
@@ -86,52 +84,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
               ],
             ),
           ),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore.collection('users').snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (!snapshot.hasData) {
-                  return const Center(child: Text('No users found'));
-                }
-
-                final users = snapshot.data!.docs;
-
-                return ListView.builder(
-                  itemCount: users.length,
-                  itemBuilder: (context, index) {
-                    final user = users[index];
-                    return ListTile(
-                      title: Text(user['email']),
-                      subtitle: Text('Role: ${user['role']}'),
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (value) async {
-                          if (value == 'delete') {
-                            await _firestore.collection('users').doc(user.id).delete();
-                          } else if (value == 'promote') {
-                            await _firestore.collection('users').doc(user.id).update({'role': 'admin'});
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'promote',
-                            child: Text('Promote to Admin'),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Text('Delete User'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
+          // Removed user data section
         ],
       ),
     );

@@ -18,7 +18,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Future<int> _getTotalCourses() async {
-    final snapshot = await _firestore.collection('courses').get(); // Assuming 'courses' is the collection name
+    final snapshot = await _firestore
+        .collection('courses')
+        .get(); // Assuming 'courses' is the collection name
     return snapshot.docs.length;
   }
 
@@ -27,10 +29,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
-        leading: IconButton(
-          icon: const Icon(Icons.person),
-          onPressed: () {
-            // Handle profile icon press
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer(); // Open the drawer
+              },
+            );
           },
         ),
         actions: [
@@ -38,7 +44,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await _auth.signOut();
-              Navigator.pushReplacementNamed(context, '/login'); // Adjust route as needed
+              Navigator.pushReplacementNamed(
+                  context, '/login'); // Adjust route as needed
             },
           ),
         ],
@@ -47,7 +54,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(
                 color: Colors.blue,
               ),
@@ -62,13 +69,52 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ListTile(
               title: Text('Courses'),
               onTap: () {
-                Navigator.pushNamed(context, '/courses'); // Adjust route as needed
+                // For demonstration purposes, we're using a hardcoded subcategoryId.
+                // Replace this with the actual dynamic value you have.
+                final subcategoryId =
+                    'example_subcategory_id'; // This should be dynamic in practice
+
+                Navigator.pushNamed(
+                  context,
+                  '/courses',
+                  arguments: {'subcategoryId': subcategoryId},
+                );
+              },
+            ),
+            ListTile(
+              title: Text('Categories'),
+              onTap: () {
+                // For demonstration purposes, we're using a hardcoded subcategoryId.
+                // Replace this with the actual dynamic value you have.
+                // final subcategoryId =
+                //     'example_subcategory_id'; // This should be dynamic in practice
+
+                Navigator.pushNamed(
+                  context,
+                  '/categories',
+                  // arguments: {'subcategoryId': subcategoryId},
+                );
               },
             ),
             ListTile(
               title: Text('Users'),
               onTap: () {
-                Navigator.pushNamed(context, '/users'); // Adjust route as needed
+                Navigator.pushNamed(
+                    context, '/users'); // Adjust route as needed
+              },
+            ),
+            ListTile(
+              title: Text('Permission'),
+              onTap: () {
+                Navigator.pushNamed(
+                    context, '/userspermission'); // Adjust route as needed
+              },
+            ),
+            ListTile(
+              title: Text('Settings'),
+              onTap: () {
+                Navigator.pushNamed(
+                    context, '/adminsettings'); // Adjust route as needed
               },
             ),
           ],
@@ -110,9 +156,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       trailing: PopupMenuButton<String>(
                         onSelected: (value) async {
                           if (value == 'delete') {
-                            await _firestore.collection('users').doc(user.id).delete();
+                            await _firestore
+                                .collection('users')
+                                .doc(user.id)
+                                .delete();
                           } else if (value == 'promote') {
-                            await _firestore.collection('users').doc(user.id).update({'role': 'admin'});
+                            await _firestore
+                                .collection('users')
+                                .doc(user.id)
+                                .update({'role': 'admin'});
                           }
                         },
                         itemBuilder: (context) => [
@@ -164,7 +216,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
               Text(
                 '${snapshot.data}',
-                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold),
               ),
             ],
           ),

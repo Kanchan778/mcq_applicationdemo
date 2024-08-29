@@ -69,6 +69,15 @@ class _LoginpageState extends State<Loginpage> {
           );
 
           if (user != null) {
+            // Determine role and store in Firestore
+            String role = email == 'admin@example.com' ? 'admin' : 'client';
+
+            // Store additional user details in Firestore
+            await _firestore.collection('users').doc(user.uid).set({
+              'email': email,
+              'role': role,
+            }, SetOptions(merge: true));
+
             _showDialog('Success', 'Successfully registered! Please log in.');
             // Navigate to login page after successful registration
             Future.delayed(Duration(seconds: 1), () {
@@ -106,7 +115,7 @@ class _LoginpageState extends State<Loginpage> {
 
           String role = data?['role'] ?? 'client'; // Default role if not found
 
-          // Navigate based on role 
+          // Navigate based on role
           Navigator.pushReplacementNamed(
             context,
             role == 'admin'
@@ -150,109 +159,111 @@ class _LoginpageState extends State<Loginpage> {
       appBar: AppBar(
         title: Text(_isLogin ? 'Login' : 'Signup'),
       ),
-      body: Center(
-        child: Container(
-          width: 300, // Width of the container
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white, // Background color of the container
-            borderRadius: BorderRadius.circular(8.0), // Rounded corners
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 4.0,
-                offset: Offset(0, 2), // Shadow position
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    if (!_isLogin) ...[
+      body: SingleChildScrollView(
+        child: Center(
+          child: Container(
+            width: 300, // Width of the container
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white, // Background color of the container
+              borderRadius: BorderRadius.circular(8.0), // Rounded corners
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 4.0,
+                  offset: Offset(0, 2), // Shadow position
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      if (!_isLogin) ...[
+                        TextFormField(
+                          controller: _controllers.nameController,
+                          decoration: const InputDecoration(labelText: 'Name'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your name';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _controllers.addressController,
+                          decoration: const InputDecoration(labelText: 'Address'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your address';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       TextFormField(
-                        controller: _controllers.nameController,
-                        decoration: const InputDecoration(labelText: 'Name'),
+                        controller: _controllers.emailController,
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your name';
+                            return 'Please enter your email';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        controller: _controllers.addressController,
-                        decoration: const InputDecoration(labelText: 'Address'),
+                        controller: _controllers.passwordController,
+                        decoration: const InputDecoration(labelText: 'Password'),
+                        obscureText: true,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your address';
+                            return 'Please enter your password';
                           }
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _register,
+                        child: Text(_isLogin ? 'Login' : 'Signup'),
+                      ),
                     ],
-                    TextFormField(
-                      controller: _controllers.emailController,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _controllers.passwordController,
-                      decoration: const InputDecoration(labelText: 'Password'),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _register,
-                      child: Text(_isLogin ? 'Login' : 'Signup'),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              TextButton(
-                onPressed: _toggleForm,
-                child: Text(_isLogin ? 'Don\'t have an account? Signup' : 'Already have an account? Login'),
-              ),
-              const SizedBox(height: 20),
-              const Text('Or'),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: _signInWithGoogle,
-                style: ElevatedButton.styleFrom(
-                  iconColor: primaryColor, // Google sign-in button color
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: _toggleForm,
+                  child: Text(_isLogin ? 'Don\'t have an account? Signup' : 'Already have an account? Login'),
                 ),
-                icon: const Icon(FontAwesomeIcons.google),
-                label: const Text('Sign in with Google'),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton.icon(
-                onPressed: _signInWithFacebook,
-                style: ElevatedButton.styleFrom(
-                  iconColor: secondaryColor, // Facebook sign-in button color
+                const SizedBox(height: 20),
+                const Text('Or'),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: _signInWithGoogle,
+                  style: ElevatedButton.styleFrom(
+                    iconColor: primaryColor, // Google sign-in button color
+                  ),
+                  icon: const Icon(FontAwesomeIcons.google),
+                  label: const Text('Sign in with Google'),
                 ),
-                icon: const Icon(FontAwesomeIcons.facebookF),
-                label: const Text('Sign in with Facebook'),
-              ),
-            ],
+                const SizedBox(height: 10),
+                ElevatedButton.icon(
+                  onPressed: _signInWithFacebook,
+                  style: ElevatedButton.styleFrom(
+                    iconColor: secondaryColor, // Facebook sign-in button color
+                  ),
+                  icon: const Icon(FontAwesomeIcons.facebookF),
+                  label: const Text('Sign in with Facebook'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

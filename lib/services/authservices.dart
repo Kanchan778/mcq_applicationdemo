@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart'; // For hashing passwords
+import 'dart:convert'; // For encoding
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -29,10 +31,29 @@ class AuthService {
     }
   }
 
+  // Function to add admin credentials with role
+  Future<void> addAdminCredentials(String email, String password) async {
+    try {
+      // Hash the password before storing
+      String hashedPassword = _hashPassword(password);
+
+      // Store the admin credentials and role in Firestore
+      await _firestore.collection('admin_credentials').doc(email).set({
+        'email': email,
+        'password': hashedPassword,
+        'role': 'admin', // Set the role as admin
+      });
+
+      print('Admin credentials added successfully.');
+    } catch (e) {
+      print('Error adding admin credentials: $e');
+    }
+  }
+
   // Login a user or admin
   Future<User?> login(String email, String password) async {
     try {
-      // Check if email and password match admin credentials from Firestore
+      // Check if the credentials match admin credentials
       bool isAdmin = await _isAdmin(email, password);
 
       if (isAdmin) {
@@ -59,20 +80,30 @@ class AuthService {
   // Check if the email and password match admin credentials
   Future<bool> _isAdmin(String email, String password) async {
     try {
-      QuerySnapshot snapshot = await _firestore.collection('admin_credentials').where('email', isEqualTo: email).get();
+      // Fetch admin credentials from Firestore
+      DocumentSnapshot adminDoc = await _firestore.collection('admin_credentials').doc(email).get();
 
-      if (snapshot.docs.isEmpty) {
+      if (!adminDoc.exists) {
         return false; // No admin credentials found for this email
       }
 
-      DocumentSnapshot adminDoc = snapshot.docs.first;
-      String storedPassword = adminDoc['password']; // Assuming password is stored in plaintext (consider hashing passwords)
+      // Retrieve the stored hashed password
+      String storedHashedPassword = adminDoc['password'];
 
-      return password == storedPassword;
+      // Hash the provided password and compare
+      String hashedPassword = _hashPassword(password);
+      return hashedPassword == storedHashedPassword;
     } catch (e) {
       print('Error checking admin credentials: $e');
       return false;
     }
+  }
+
+  // Hash password using SHA256
+  String _hashPassword(String password) {
+    final bytes = utf8.encode(password); // Convert password to bytes
+    final digest = sha256.convert(bytes); // Hash password
+    return digest.toString(); // Convert hash to string
   }
 
   // Get current user
