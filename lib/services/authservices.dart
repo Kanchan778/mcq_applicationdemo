@@ -143,4 +143,37 @@ class AuthService {
       return null;
     }
   }
+
+  //store catgeories data
+  Future<void> addCategory(String name, String description) async {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  try {
+    // Store category data in Firestore
+    await _firestore.collection('categories').add({
+      'Category Name': name,            // Category name
+      'category Description': description, // Category description
+    });
+    print('Category added successfully');
+  } catch (e) {
+    print('Error adding category: $e');
+  }
 }
+ // Fetch category names
+  Future<List<String>> getCategoryNames() async {
+    try {
+      final querySnapshot = await _firestore.collection('categories').get();
+      return querySnapshot.docs
+        .map((doc) {
+          final data = doc.data() as Map<String, dynamic>?; 
+          return data?['Category Name'] as String? ?? 'No Category Name'; 
+        })
+        .where((categoryName) => categoryName.isNotEmpty) 
+        .toList();
+    } catch (e) {
+      print('Error fetching category names: $e');
+      return [];
+    }
+  }
+}
+

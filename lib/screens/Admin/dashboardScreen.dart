@@ -11,17 +11,37 @@ class _AdminDashboardState extends State<AdminDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Fetch total number of courses and users
-  Future<int> _getTotalUsers() async {
-    final snapshot = await _firestore.collection('users').get();
-    return snapshot.docs.length;
+  // Fetch total number of users
+  Future<int> _fetchTotalUsers() async {
+    try {
+      final snapshot = await _firestore.collection('users').get();
+      return snapshot.size; // Efficient way to get document count
+    } catch (e) {
+      print('Error fetching total users: $e');
+      return 0;
+    }
   }
 
-  Future<int> _getTotalCourses() async {
-    final snapshot = await _firestore
-        .collection('courses')
-        .get(); // Assuming 'courses' is the collection name
-    return snapshot.docs.length;
+  // Fetch total number of courses
+  Future<int> _fetchTotalCourses() async {
+    try {
+      final snapshot = await _firestore.collection('courses').get();
+      return snapshot.size; // Efficient way to get document count
+    } catch (e) {
+      print('Error fetching total courses: $e');
+      return 0;
+    }
+  }
+
+  // Fetch total number of categories
+  Future<int> _fetchTotalCategories() async {
+    try {
+      final snapshot = await _firestore.collection('categories').get();
+      return snapshot.size; // Efficient way to get document count
+    } catch (e) {
+      print('Error fetching total categories: $e');
+      return 0;
+    }
   }
 
   @override
@@ -44,8 +64,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await _auth.signOut();
-              Navigator.pushReplacementNamed(
-                  context, '/login'); // Adjust route as needed
+              Navigator.pushReplacementNamed(context, '/login'); // Adjust route as needed
             },
           ),
         ],
@@ -69,52 +88,31 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ListTile(
               title: Text('Courses'),
               onTap: () {
-                // For demonstration purposes, we're using a hardcoded subcategoryId.
-                // Replace this with the actual dynamic value you have.
-                final subcategoryId =
-                    'example_subcategory_id'; // This should be dynamic in practice
-
-                Navigator.pushNamed(
-                  context,
-                  '/courses',
-                  arguments: {'subcategoryId': subcategoryId},
-                );
+                Navigator.pushNamed(context, '/courses', arguments: {'subcategoryId': 'example_subcategory_id'});
               },
             ),
             ListTile(
               title: Text('Categories'),
               onTap: () {
-                // For demonstration purposes, we're using a hardcoded subcategoryId.
-                // Replace this with the actual dynamic value you have.
-                // final subcategoryId =
-                //     'example_subcategory_id'; // This should be dynamic in practice
-
-                Navigator.pushNamed(
-                  context,
-                  '/categories',
-                  // arguments: {'subcategoryId': subcategoryId},
-                );
+                Navigator.pushNamed(context, '/categories');
               },
             ),
             ListTile(
               title: Text('Users'),
               onTap: () {
-                Navigator.pushNamed(
-                    context, '/users'); // Adjust route as needed
+                Navigator.pushNamed(context, '/users');
               },
             ),
             ListTile(
               title: Text('Permission'),
               onTap: () {
-                Navigator.pushNamed(
-                    context, '/userspermission'); // Adjust route as needed
+                Navigator.pushNamed(context, '/userspermission');
               },
             ),
             ListTile(
               title: Text('Settings'),
               onTap: () {
-                Navigator.pushNamed(
-                    context, '/adminsettings'); // Adjust route as needed
+                Navigator.pushNamed(context, '/adminsettings');
               },
             ),
           ],
@@ -124,11 +122,31 @@ class _AdminDashboardState extends State<AdminDashboard> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            child: Column(
               children: [
-                _buildCountBox('Total Users', _getTotalUsers()),
-                _buildCountBox('Total Courses', _getTotalCourses()),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: _buildCountBox('Total Users', _fetchTotalUsers()),
+                    ),
+                    SizedBox(width: 16), // Adjust spacing between items
+                    Expanded(
+                      child: _buildCountBox('Total Courses', _fetchTotalCourses()),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: _buildCountBox('Total Categories', _fetchTotalCategories()),
+                    ),
+                    SizedBox(width: 16), // Adjust spacing between items
+                    Expanded(child: Container()), // Maintains layout consistency
+                  ],
+                ),
               ],
             ),
           ),
@@ -156,15 +174,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       trailing: PopupMenuButton<String>(
                         onSelected: (value) async {
                           if (value == 'delete') {
-                            await _firestore
-                                .collection('users')
-                                .doc(user.id)
-                                .delete();
+                            await _firestore.collection('users').doc(user.id).delete();
                           } else if (value == 'promote') {
-                            await _firestore
-                                .collection('users')
-                                .doc(user.id)
-                                .update({'role': 'admin'});
+                            await _firestore.collection('users').doc(user.id).update({'role': 'admin'});
                           }
                         },
                         itemBuilder: (context) => [
@@ -194,11 +206,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
       future: countFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.blueAccent,
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: const Center(child: CircularProgressIndicator()),
+          );
         }
 
         if (!snapshot.hasData) {
-          return const Text('Error loading data');
+          return Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.blueAccent,
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: const Center(child: Text('Error loading data')),
+          );
         }
 
         return Container(
