@@ -8,20 +8,22 @@ class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Register a new user with additional data and the 'client' role
-  Future<User?> register(String email, String password, String name, String address) async {
+  Future<User?> register(
+      String email, String password, String name, String address) async {
     try {
       // Register the user with email and password
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       // Store user data in Firestore
       await _firestore.collection('users').doc(userCredential.user?.uid).set({
-        'role': 'client',  // Default role for new users
-        'name': name,      // Additional user data
+        'role': 'client', // Default role for new users
+        'name': name, // Additional user data
         'address': address, // Additional user data
-        'email': email,    // Store email for reference
+        'email': email, // Store email for reference
       });
 
       return userCredential.user;
@@ -81,7 +83,8 @@ class AuthService {
   Future<bool> _isAdmin(String email, String password) async {
     try {
       // Fetch admin credentials from Firestore
-      DocumentSnapshot adminDoc = await _firestore.collection('admin_credentials').doc(email).get();
+      DocumentSnapshot adminDoc =
+          await _firestore.collection('admin_credentials').doc(email).get();
 
       if (!adminDoc.exists) {
         return false; // No admin credentials found for this email
@@ -125,7 +128,8 @@ class AuthService {
   // Get user role
   Future<String?> getUserRole(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+      DocumentSnapshot doc =
+          await _firestore.collection('users').doc(uid).get();
       return doc['role'] as String?;
     } catch (e) {
       print('Error fetching user role: $e');
@@ -136,7 +140,8 @@ class AuthService {
   // Get additional user data
   Future<Map<String, dynamic>?> getUserData(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+      DocumentSnapshot doc =
+          await _firestore.collection('users').doc(uid).get();
       return doc.data() as Map<String, dynamic>?;
     } catch (e) {
       print('Error fetching user data: $e');
@@ -146,34 +151,79 @@ class AuthService {
 
   //store catgeories data
   Future<void> addCategory(String name, String description) async {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  try {
-    // Store category data in Firestore
-    await _firestore.collection('categories').add({
-      'Category Name': name,            // Category name
-      'category Description': description, // Category description
-    });
-    print('Category added successfully');
-  } catch (e) {
-    print('Error adding category: $e');
+    try {
+      // Store category data in Firestore
+      await _firestore.collection('categories').add({
+        'Category Name': name, // Category name
+        'category Description': description, // Category description
+      });
+      print('Category added successfully');
+    } catch (e) {
+      print('Error adding category: $e');
+    }
   }
-}
- // Fetch category names
+
+  // Fetch category names
   Future<List<String>> getCategoryNames() async {
     try {
       final querySnapshot = await _firestore.collection('categories').get();
       return querySnapshot.docs
-        .map((doc) {
-          final data = doc.data() as Map<String, dynamic>?; 
-          return data?['Category Name'] as String? ?? 'No Category Name'; 
-        })
-        .where((categoryName) => categoryName.isNotEmpty) 
-        .toList();
+          .map((doc) {
+            final data = doc.data() as Map<String, dynamic>?;
+            return data?['Category Name'] as String? ?? 'No Category Name';
+          })
+          .where((categoryName) => categoryName.isNotEmpty)
+          .toList();
     } catch (e) {
       print('Error fetching category names: $e');
       return [];
     }
   }
-}
 
+   // Fetch categories with their IDs
+  Future<List<Map<String, dynamic>>> getCategories() async {
+    try {
+      final querySnapshot = await _firestore.collection('categories').get();
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'id': doc.id,
+          'name': data['Category Name'] ?? 'No Category Name',
+        };
+      }).toList();
+    } catch (e) {
+      print('Error fetching categories: $e');
+      return [];
+    }
+  }
+
+
+
+// Function to delete a category by its name
+  Future<void> deleteCategory(String categoryName) async {
+    try {
+      // Reference to the categories collection
+      final categoryCollection = _firestore.collection('categories');
+      
+      // Query to find the document with the given category name
+      final querySnapshot = await categoryCollection
+          .where('Category Name', isEqualTo: categoryName) // Use correct field name
+          .get();
+
+      // If a matching document is found, delete it
+      if (querySnapshot.docs.isNotEmpty) {
+        final docId = querySnapshot.docs.first.id;
+        await categoryCollection.doc(docId).delete();
+        print('Category deleted successfully.');
+      } else {
+        print('Category not found.');
+      }
+    } catch (e) {
+      print('Error deleting category: $e');
+      // Handle errors (e.g., show a message to the user)
+      throw Exception('Error deleting category: $e');
+    }
+  }
+}

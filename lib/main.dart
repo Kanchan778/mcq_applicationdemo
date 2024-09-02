@@ -10,9 +10,9 @@ import 'package:flutter_mcq/screens/loginpage.dart';
 
 import 'package:flutter_mcq/services/authcheck.dart';
 
-
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter bindings are initialized
+  WidgetsFlutterBinding
+      .ensureInitialized(); // Ensure Flutter bindings are initialized
   await Firebase.initializeApp(); // Initialize Firebase
   runApp(MyApp());
 }
@@ -32,14 +32,14 @@ class MyApp extends StatelessWidget {
         '/home': (context) => ClientDashboard(), //user dashboard
         '/auth_check': (context) => AuthCheck(), //role checking route
         '/login': (context) => Loginpage(), //the login page route
-        '/categories':(context) => CategoriesPage(),
+        '/categories': (context) => CategoriesPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/courses') {
           final args = settings.arguments as Map<String, String>;
           final subcategoryId = args['subcategoryId'] ?? '';
 
-           return MaterialPageRoute(
+          return MaterialPageRoute(
             builder: (context) => CoursesPage(subcategoryId: subcategoryId),
           );
         } else if (settings.name == '/add_course') {

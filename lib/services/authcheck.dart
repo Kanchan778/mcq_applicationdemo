@@ -26,7 +26,8 @@ class AuthCheck extends StatelessWidget {
         if (userSnapshot.hasData && userSnapshot.data != null) {
           // User is logged in, check their role
           return FutureBuilder<String?>(
-            future: _authService.getUserRole(userSnapshot.data!.uid), // Fetch user role
+            future: _authService
+                .getUserRole(userSnapshot.data!.uid), // Fetch user role
             builder: (context, roleSnapshot) {
               if (roleSnapshot.connectionState == ConnectionState.waiting) {
                 // Show a loading spinner while fetching the role

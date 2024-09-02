@@ -64,7 +64,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await _auth.signOut();
-              Navigator.pushReplacementNamed(context, '/login'); // Adjust route as needed
+              Navigator.pushReplacementNamed(
+                  context, '/login'); // Adjust route as needed
             },
           ),
         ],
@@ -88,7 +89,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ListTile(
               title: Text('Courses'),
               onTap: () {
-                Navigator.pushNamed(context, '/courses', arguments: {'subcategoryId': 'example_subcategory_id'});
+                Navigator.pushNamed(context, '/courses',
+                    arguments: {'subcategoryId': 'example_subcategory_id'});
               },
             ),
             ListTile(
@@ -132,7 +134,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     ),
                     SizedBox(width: 16), // Adjust spacing between items
                     Expanded(
-                      child: _buildCountBox('Total Courses', _fetchTotalCourses()),
+                      child:
+                          _buildCountBox('Total Courses', _fetchTotalCourses()),
                     ),
                   ],
                 ),
@@ -141,10 +144,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Expanded(
-                      child: _buildCountBox('Total Categories', _fetchTotalCategories()),
+                      child: _buildCountBox(
+                          'Total Categories', _fetchTotalCategories()),
                     ),
                     SizedBox(width: 16), // Adjust spacing between items
-                    Expanded(child: Container()), // Maintains layout consistency
+                    Expanded(
+                        child: Container()), // Maintains layout consistency
                   ],
                 ),
               ],
@@ -174,9 +179,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       trailing: PopupMenuButton<String>(
                         onSelected: (value) async {
                           if (value == 'delete') {
-                            await _firestore.collection('users').doc(user.id).delete();
+                            await _firestore
+                                .collection('users')
+                                .doc(user.id)
+                                .delete();
                           } else if (value == 'promote') {
-                            await _firestore.collection('users').doc(user.id).update({'role': 'admin'});
+                            await _firestore
+                                .collection('users')
+                                .doc(user.id)
+                                .update({'role': 'admin'});
                           }
                         },
                         itemBuilder: (context) => [
